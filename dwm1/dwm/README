@@ -17,6 +17,14 @@ these are the -dev or -devel variants, for example:
 
     Arch            libx11 libxft libxinerama libxi fontconfig dbus
     Debian, Ubuntu  libx11-dev libxft-dev libxinerama-dev libxi-dev libdbus-1-dev
+    FreeBSD         pkg install dbus pkgconf (X11/freetype headers ship with
+                    the x11/xorg packages, no -dev split)
+
+The build works with both GNU make and BSD make (plain `make` on FreeBSD):
+system paths are detected at make time (the BSDs install under /usr/local,
+Linux under /usr) and dbus is located through pkg-config, so no config.mk
+edits are needed on either. If pkg-config is missing the dbus part silently
+drops out and the build fails on dbus.h instead.
 
 XInput2 is needed for the two mouse button move gesture only. Comment out
 XINPUT2LIBS and XINPUT2FLAGS in config.mk to build without it: dwm then prints
