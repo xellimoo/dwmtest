@@ -100,6 +100,14 @@ dock their icons there automatically (XEmbed). Clicks on tray icons go to
 their apps.
 
 
+Test tools
+----------
+tools/docktest.c builds a minimal tray client that docks a white square for
+a few seconds (cc tools/docktest.c -o /tmp/docktest -lX11) - useful where no
+real tray app is at hand. tools/cap.c captures a screen region to PPM
+(cc tools/cap.c -o /tmp/cap -lX11; /tmp/cap x y w h out.ppm).
+
+
 Installation
 ------------
 Edit config.mk to match your local setup (dwm is installed into
