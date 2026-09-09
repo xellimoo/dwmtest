@@ -1,0 +1,7 @@
+[Desktop Entry]
+Name=edwm
+Comment=Customized dynamic window manager with runtime theming
+TryExec=edwm-session
+Exec=edwm-session
+Type=Application
+DesktopNames=edwm

@@ -1,0 +1,416 @@
+.TH DWM 1 dwm\-VERSION
+.SH NAME
+dwm \- dynamic window manager
+.SH SYNOPSIS
+.B dwm
+.RB [ \-v ]
+.SH DESCRIPTION
+dwm is a dynamic window manager for X. This build is a modified dwm in which
+windows are managed floating by default: they are moved and resized freely with
+the mouse or the keyboard, and windows are never tiled behind your back.
+.P
+Instead of switchable layouts this build offers a
+.B task view
+and a set of
+.B snap
+commands. Task view tiles every window of the current tag at once as an
+overview; clicking a window leaves task view and focuses it, restoring the
+previous geometry of all windows. The snap commands place a window on the left
+or right half of the screen, or place the focused window and the one below it
+side by side.
+.P
+A window can be raised permanently above all others (always on top), or shrunk
+into a small tile in the lower right corner of the screen (stay low), which
+keeps it visible and clickable while it is out of the way. Successive stay low
+windows are stacked with a small offset so they remain distinguishable.
+.P
+Windows are grouped by tags. Each window can be tagged with one or multiple
+tags. Selecting certain tags displays all windows with these tags.
+.P
+Each screen contains a small status bar which displays, from left to right, the
+available tags, the layout symbol, the number of windows on the current tag as
+.BR #n ,
+the snap indicator
+.B [S]
+when two windows are snapped side by side, the title of the focused window, and
+the text read from the root window name property. The layout symbol is
+.B ><>
+normally and
+.B [T]
+while the current tag is in task view. A floating window is indicated with an
+empty square before the window title, a fixed size window with a filled square,
+and an always on top window with a second square below it. The selected tags
+are indicated with a different color. The tags of the focused window are
+indicated with a filled square in the top left corner. The tags which are
+applied to one or more windows are indicated with an empty square in the top
+left corner.
+.P
+dwm draws a small border around windows to indicate the focus state.
+.SH OPTIONS
+.TP
+.B \-v
+prints version information to stderr, then exits.
+.SH USAGE
+.SS Status bar
+.TP
+.B X root window name
+is read and displayed in the status text area. It can be set with the
+.BR xsetroot (1)
+command.
+.SS Keyboard commands
+.TP
+.B Mod1\-r
+Spawn
+.BR dmenu (1)
+for launching other programs.
+.TP
+.B Mod1\-a
+Start a terminal with a preset size, font and colour scheme. Each one is placed
+slightly below and to the right of the previous one.
+.TP
+.B Mod1\-c
+Start the screenshot tool in region mode.
+.TP
+.B Mod1\-Shift\-Return
+Start a terminal.
+.TP
+.B Mod1\-Shift\-p
+Lock the screen and turn the display off.
+.TP
+.B Mod1\-Shift\-u
+Run the wordlist input helper configured in config.h.
+.TP
+.B Mod1\-Shift\-i
+Run the webshell input helper configured in config.h.
+.TP
+.B Mod1\-Shift\-F6
+Decrease backlight brightness.
+.TP
+.B Mod1\-Shift\-F7
+Increase backlight brightness.
+.TP
+.B Mod1\-Shift\-F8
+Reset backlight brightness to its default level.
+.TP
+.B Mod1\-b
+Toggles bar on and off.
+.TP
+.B Mod1\-w
+Focus previous window.
+.TP
+.B Mod1\-Shift\-w
+Focus next window.
+.TP
+.B Mod1\-Tab
+Focus the window that was focused before the current one. Pressing it
+repeatedly alternates between the two most recently used windows.
+.TP
+.B Mod1\-Return
+Zooms/cycles focused window to/from master area (task view only).
+.TP
+.B Mod1\-Shift\-c
+Close focused window.
+.TP
+.B Mod1\-Shift\-g
+Toggle focused window between tiled and floating state.
+.TP
+.B Mod1\-f
+Toggle focused window between its normal geometry and the full screen area
+below the bar.
+.TP
+.B Mod1\-q
+Toggle always on top for the focused window. At most one window per tag is
+always on top, so this clears the flag on any other window.
+.TP
+.B Mod1\-v
+Toggle stay low for the focused window: shrink it into a small tile in the lower
+right corner of the screen and focus the window below it, or restore its
+previous geometry.
+.TP
+.B Mod1\-d
+Toggle task view for the current tag. Entering it tiles all windows of the tag,
+widening the master area when there are more than three; leaving it restores
+every window to its previous geometry.
+.SS Snapping
+.TP
+.B Mod1\-j
+Snap focused window to the left half of the screen.
+.TP
+.B Mod1\-k
+Snap focused window to the right half of the screen.
+.TP
+.B Mod1\-e
+Toggle snapping the focused window and the window below it side by side. Both
+windows return to their previous geometry when toggled off. This leaves task
+view first if it is active.
+.TP
+.B Mod1\-s
+Swap the two side by side snapped windows.
+.SS Moving and resizing with the keyboard
+.TP
+.B Mod1\-Shift\-h
+Move focused window left by
+.B movestep
+pixels (config.h, 30 by default).
+.TP
+.B Mod1\-Shift\-l
+Move focused window right by
+.B movestep
+pixels.
+.TP
+.B Mod1\-Shift\-j
+Move focused window up by
+.B movestep
+pixels. While two windows are snapped side by side this widens the focused
+window by
+.B snapwidthstep
+pixels (config.h, 15 by default) instead.
+.TP
+.B Mod1\-Shift\-k
+Move focused window down by
+.B movestep
+pixels. While two windows are snapped side by side this narrows the focused
+window by
+.B snapwidthstep
+pixels instead.
+.TP
+.B Mod1\-Shift\-d
+Increase width of focused window by
+.B resizestep
+pixels (config.h, 30 by default). The top left corner stays in place.
+.TP
+.B Mod1\-Shift\-e
+Decrease width of focused window by
+.B resizestep
+pixels.
+.TP
+.B Mod1\-Shift\-s
+Increase height of focused window by
+.B resizestep
+pixels.
+.TP
+.B Mod1\-Shift\-q
+Decrease height of focused window by
+.B resizestep
+pixels.
+.TP
+.B Mod1\-Control\-Shift\-h, \-l, \-j, \-k
+Move focused window 100 pixels in that direction. These are examples of move
+bindings that carry their own distance instead of using
+.BR movestep :
+in config.h, writing
+.B MOVEBY(DirLeft, 100)
+where a plain move binding writes
+.B {.ui = DirLeft}
+sets the distance for that key. The distance replaces
+.B snapwidthstep
+too, so while two windows are snapped side by side these keys adjust the split
+by 100 pixels rather than by 15. Rebind or delete them to taste.
+.P
+The keyboard move and resize commands are ignored in task view, for fullscreen
+windows, and, except for the snapped case described above, for windows snapped
+side by side.
+.SS Tags
+.TP
+.B Mod1\-[1..n]
+View all windows with nth tag.
+.TP
+.B Mod1\-Control\-[1..n]
+Add/remove all windows with nth tag to/from the view.
+.TP
+.B Mod1\-Shift\-[1..n]
+Apply nth tag to focused window.
+.TP
+.B Mod1\-Control\-Shift\-[1..n]
+Add/remove nth tag to/from focused window.
+.TP
+.B Mod1\-t
+Toggles to the previously selected tags.
+.TP
+.B Mod1\-Shift\-]
+Quit dwm.
+.SS Mouse commands on the bar
+.TP
+.B Button1
+click on a tag label to display all windows with that tag, click on the layout
+symbol toggles task view.
+.TP
+.B Button2
+click on the window title zooms that window to the master area (task view
+only), click on the status text starts a terminal.
+.TP
+.B Button3
+click on a tag label adds/removes all windows with that tag to/from the view,
+click on the layout symbol toggles task view.
+.TP
+.B Mod1\-Button1
+click on a tag label applies that tag to the focused window.
+.TP
+.B Mod1\-Button3
+click on a tag label adds/removes that tag to/from the focused window.
+.SS Mouse commands on windows
+.TP
+.B Button1
+click on a window focuses it. Clicking a window in task view additionally
+leaves task view and restores every window to its previous geometry. The click
+itself is passed on to the window.
+.TP
+.B Button2
+Move focused window while dragging. Tiled windows will be toggled to the
+floating state.
+.TP
+.B Button1 plus Button3
+Use both mouse buttons inside a window, in either order, to pick that window
+up: hold them down together, or click one and then the other within
+.B chordtimeout
+milliseconds (config.h, 500 by default). The window is focused, raised, and
+from then on follows the pointer with no button held down. Click any button to
+put it down where it is; pressing any dwm key binding puts it down as well.
+.P
+dwm never grabs the pointer for this, so the clicks that pick a window up and
+put it down also reach the client underneath as ordinary clicks. Set
+.B mousechordmove
+to 0 in config.h to disable the gesture. It needs XInput2, see
+.B XINPUT2FLAGS
+in config.mk; without it dwm prints a warning at startup and the gesture stays
+off.
+.TP
+.B Mod1\-Button2
+Toggles focused window between floating and tiled state.
+.TP
+.B Mod1\-Button3
+Resize focused window while dragging. The corner of the quadrant the pointer is
+in is the one that moves, the opposite corner stays anchored. Tiled windows will
+be toggled to the floating state.
+.P
+Dragging a window past the left or right edge of the screen snaps it to that
+half, and dragging a snapped window away restores the size it had before it was
+snapped.
+.SH CUSTOMIZATION
+dwm is customized by editing config.h and (re)compiling the source code. This
+keeps it fast, secure and simple. config.h is generated from config.def.h only
+when it does not exist yet, so an existing config.h has to be edited directly.
+.SH THEMING
+.B edwm
+reads
+.I ~/.config/edwm/theme.conf
+and re-reads it whenever it changes, so colours, tone, fonts and bar metrics
+can be changed without recompiling or restarting. A theme is a named palette,
+schemes that reference palette entries, and a tone transform applied to the
+whole palette.
+.P
+Use
+.BR edwmctl (1)
+to switch presets
+.RB ( "edwmctl theme nord" ),
+sweep the tone
+.RB ( "edwmctl tone hue=+20 saturation=1.2" )
+or force a re-read
+.RB ( "edwmctl reload" ).
+A theme that fails to parse is reported and ignored; the running theme stays.
+.P
+The window manager can also be driven by writing a command to the
+.B _EDWM_CMD
+property on the root window, which is what
+.B edwmctl
+falls back to when the D-Bus service is not built in.
+.SH TASKBAR
+The bar lists every window on the current tag. Button1 focuses and raises a
+window, or minimises it if it already has focus; Button2 toggles
+always-on-top; Button3 closes it. These are ordinary
+.B buttons[]
+entries in
+.IR config.h .
+.SH SYSTEM TRAY
+The right-hand end of the bar holds two trays side by side, because applets
+come in two incompatible kinds.
+.P
+XEmbed applets dock an X window into the bar.
+.P
+StatusNotifierItem applets publish themselves on the session bus instead.
+.B edwm
+provides
+.B org.kde.StatusNotifierWatcher
+and a StatusNotifierHost, fetches each item's icon -- from IconPixmap where
+offered, otherwise by icon-theme lookup, PNG only -- and paints it into the
+bar. Button1 sends Activate and Button2 SecondaryActivate.
+.P
+Button3 opens the item's menu. Applets publish these over DBusMenu rather
+than drawing them, so
+.B edwm
+fetches and renders the menu itself, with submenus, separators, disabled and
+hidden entries, checkmarks and inline icons. It can be driven with the mouse
+or with Up, Down, Left, Right, Enter and Escape, and follows the theme's
+.BR menu ,
+.B menusel
+and
+.B menudim
+schemes.
+.P
+This half needs the libdbus build. If another StatusNotifierWatcher owns the
+name,
+.B edwm
+queues for it rather than taking it, and shows SNI icons only if it is
+released.
+.SH DBUS
+.B edwm
+locates the session bus at startup and publishes
+.BR DISPLAY ,
+.B XAUTHORITY
+and the desktop identity into the D-Bus and systemd
+.B --user
+activation environments, so services activated later inherit a usable
+session. It never starts a bus of its own; use
+.B edwm-session
+when there is none.
+.P
+When built with libdbus it serves
+.B org.edwm.WM
+on
+.BR /org/edwm/WM ,
+offering SetTheme, GetTheme, SetTone, ReloadTheme, ListClients, FocusClient,
+CloseClient, View, SetStatus and Quit, and emitting ThemeChanged,
+FocusChanged, ClientListChanged and TagsChanged. The connection is restored
+automatically if the bus restarts.
+.SH FILES
+.TP
+.I ~/.config/edwm/theme.conf
+the live theme
+.TP
+.I ~/.config/edwm/themes/
+theme presets, searched before the system directory
+.TP
+.I ~/.config/edwm/autostart.sh
+run once at startup, if present
+.SH PORTABILITY
+.B edwm
+builds on Linux and the BSDs without configuration. Library paths come from
+.BR pkg-config ,
+and the one platform-specific piece -- watching the theme file, which is
+inotify on Linux and kqueue on the BSDs -- is selected from the compiler's
+predefined macros. Where neither exists the build still succeeds and only
+live reload is lost;
+.B edwmctl reload
+and
+.B SIGHUP
+still work. Both GNU make and BSD make build it.
+.SH SEE ALSO
+.BR dmenu (1),
+.BR slock (1),
+.BR xsetroot (1)
+.SH ISSUES
+Java applications which use the XToolkit/XAWT backend may draw grey windows
+only. The XToolkit/XAWT backend breaks ICCCM-compliance in recent JDK 1.5 and early
+JDK 1.6 versions, because it assumes a reparenting window manager. Possible workarounds
+are using JDK 1.4 (which doesn't contain the XToolkit/XAWT backend) or setting the
+environment variable
+.BR AWT_TOOLKIT=MToolkit
+(to use the older Motif backend instead) or running
+.B xprop -root -f _NET_WM_NAME 32a -set _NET_WM_NAME LG3D
+or
+.B wmname LG3D
+(to pretend that a non-reparenting window manager is running that the
+XToolkit/XAWT backend can recognize) or when using OpenJDK setting the environment variable
+.BR _JAVA_AWT_WM_NONREPARENTING=1 .
+.SH BUGS
+Send all bug reports with a patch to hackers@suckless.org.
