@@ -21,14 +21,23 @@ config.h:
 dwm: ${OBJ}
 	${CC} -o $@ ${OBJ} ${LDFLAGS}
 
+# The tray test clients, for checking the tray without hunting for a real
+# applet. Not built by `all`. Named test-clients rather than tests so the
+# target does not collide with the directory of the same name.
+test-clients: tests/traytest
+
+tests/traytest: tests/traytest.c
+	${CC} -o $@ tests/traytest.c `pkg-config --cflags --libs x11`
+
 clean:
-	rm -f dwm ${OBJ} dwm-${VERSION}.tar.gz
+	rm -f dwm ${OBJ} dwm-${VERSION}.tar.gz tests/traytest
 
 dist: clean
 	mkdir -p dwm-${VERSION}
 	cp -R LICENSE Makefile README config.def.h config.mk\
 		dwm.1 dbusif.h dbusmenu.h drw.h img.h menu.h session.h sni.h systray.h theme.h util.h ${SRC} dwm.png transient.c\
-		edwmctl themes theme.conf.example dwm-${VERSION}
+		edwmctl themes theme.conf.example theme.conf.sample TESTING\
+		tests dwm-${VERSION}
 	tar -cf dwm-${VERSION}.tar dwm-${VERSION}
 	gzip dwm-${VERSION}.tar
 	rm -rf dwm-${VERSION}
@@ -64,4 +73,4 @@ uninstall:
 		${DESTDIR}${MANPREFIX}/man1/dwm.1
 	rm -rf ${DESTDIR}${THEMEDIR}
 
-.PHONY: all clean dist install install-config uninstall
+.PHONY: all clean dist install install-config test-clients uninstall

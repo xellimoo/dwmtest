@@ -1,0 +1,15 @@
+# Paper -- a second light theme, warmer than light.theme
+[palette]
+bg      = #FDF6E3
+fg      = #4E4E4E
+bright  = #FFFFFF
+accent  = #B58900
+border  = #E4DCC3
+urgent  = #CB4B16
+muted   = #9E9E9E
+
+[scheme]
+sel      = bright, accent, accent
+tagsel   = bright, accent, accent
+tasksel  = bright, accent, accent
+status   = muted, bg, border

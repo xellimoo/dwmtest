@@ -1417,6 +1417,10 @@ maprequest(XEvent *e)
 		drawbar(mons);
 		return;
 	}
+	if (systray_adopt(ev->window)) { /* orphaned tray icon mapped as a toplevel */
+		drawbar(mons);
+		return;
+	}
 	if (!wintoclient(ev->window))
 		manage(ev->window, &wa);
 }

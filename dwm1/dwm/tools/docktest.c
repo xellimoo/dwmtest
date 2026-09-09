@@ -1,9 +1,15 @@
-/* docktest.c [seconds] - dock a red 24x24 XEmbed tray icon, then exit */
+/* docktest.c [seconds] [mode] - tray icon test client.
+ *   mode "dock"   (default): send SYSTEM_TRAY_REQUEST_DOCK, the normal path
+ *   mode "orphan": just map the window as a plain toplevel with
+ *                 _XEMBED_INFO set and no dock request - what an app does
+ *                 that found no tray manager when it created its icon
+ *                 (Wine/Battle.net style); the WM should adopt it */
 #include <X11/Xlib.h>
 #include <X11/Xatom.h>
 #include <X11/Xutil.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 int main(int argc, char **argv) {
 	Display *d = XOpenDisplay(NULL);
@@ -13,6 +19,7 @@ int main(int argc, char **argv) {
 	Atom tray, opcode, info;
 	long xembed_info[2] = {0, 1}; /* version 0, XEMBED_MAPPED */
 	int scr, secs = argc > 1 ? atoi(argv[1]) : 10;
+	int orphan = argc > 2 && !strcmp(argv[2], "orphan");
 	if (!d) return 1;
 	scr = DefaultScreen(d);
 	root = RootWindow(d, scr);
@@ -25,19 +32,25 @@ int main(int argc, char **argv) {
 	XChangeProperty(d, self, info, XA_CARDINAL, 32, PropModeReplace,
 	                (unsigned char *)xembed_info, 2);
 	XFlush(d);
-	owner = XGetSelectionOwner(d, tray);
-	printf("tray selection owner: 0x%lx\n", owner);
-	if (!owner) return 2;
-	memset(&e, 0, sizeof e);
-	e.xclient.type = ClientMessage;
-	e.xclient.window = owner;
-	e.xclient.message_type = opcode;
-	e.xclient.format = 32;
-	e.xclient.data.l[0] = CurrentTime;
-	e.xclient.data.l[1] = 0; /* SYSTEM_TRAY_REQUEST_DOCK */
-	e.xclient.data.l[2] = self;
-	XSendEvent(d, owner, False, NoEventMask, &e);
-	XFlush(d);
+	if (orphan) {
+		printf("orphan mode: mapping as a plain toplevel, no dock request\n");
+		XMapWindow(d, self);
+		XFlush(d);
+	} else {
+		owner = XGetSelectionOwner(d, tray);
+		printf("tray selection owner: 0x%lx\n", owner);
+		if (!owner) return 2;
+		memset(&e, 0, sizeof e);
+		e.xclient.type = ClientMessage;
+		e.xclient.window = owner;
+		e.xclient.message_type = opcode;
+		e.xclient.format = 32;
+		e.xclient.data.l[0] = CurrentTime;
+		e.xclient.data.l[1] = 0; /* SYSTEM_TRAY_REQUEST_DOCK */
+		e.xclient.data.l[2] = self;
+		XSendEvent(d, owner, False, NoEventMask, &e);
+		XFlush(d);
+	}
 	sleep(secs);
 	return 0;
 }

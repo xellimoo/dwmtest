@@ -123,6 +123,32 @@ dock(Window w)
 	return 1;
 }
 
+/* Adopt a toplevel that looks like an orphaned tray icon: an app that found
+ * no tray manager when it created its icon (login order races, Wine's first
+ * dock attempt failing) may fall back to mapping it as a plain window.
+ * Real toplevels never carry _XEMBED_INFO, so its presence is a safe tell;
+ * pull such windows into the tray instead of managing them as clients. */
+int
+systray_adopt(Window w)
+{
+	Atom type;
+	int format, ret;
+	unsigned long n, left;
+	unsigned char *data = NULL;
+
+	if (!w || iconfind(w))
+		return 0;
+	if (XGetWindowProperty(dpy, w, xembed_info, 0L, 2L, False, XA_CARDINAL,
+	                       &type, &format, &n, &left, &data) != Success || !data || n < 2) {
+		if (data)
+			XFree(data);
+		return 0;
+	}
+	XFree(data);
+	ret = dock(w);
+	return ret;
+}
+
 static int
 removeicon(Window w, int reparented)
 {

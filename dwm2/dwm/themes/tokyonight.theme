@@ -1,0 +1,15 @@
+# Tokyo Night
+[palette]
+bg      = #1A1B26
+fg      = #A9B1D6
+bright  = #C0CAF5
+accent  = #7AA2F7
+border  = #24283B
+urgent  = #F7768E
+muted   = #565F89
+
+[scheme]
+sel      = bg, accent, accent
+tagsel   = bg, accent, accent
+tasksel  = bg, accent, accent
+status   = muted, bg, border

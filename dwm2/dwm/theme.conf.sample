@@ -1,0 +1,81 @@
+# edwm sample theme -- copy this to ~/.config/edwm/theme.conf and it works.
+#
+#     mkdir -p ~/.config/edwm/themes
+#     cp themes/*.theme ~/.config/edwm/themes/
+#     cp theme.conf.sample ~/.config/edwm/theme.conf
+#
+# Unlike theme.conf.example, which documents every key with everything
+# commented out, this one is switched on: it picks a preset and then changes a
+# few things on top, so you can see the layering work. Edit and save it while
+# edwm is running -- it reloads immediately, no restart.
+#
+#     edwmctl theme list          which presets are installed
+#     edwmctl theme gruvbox       switch, and remember the choice
+#     edwmctl tone hue=+40        retint everything at once
+#     edwmctl reload              re-read this file
+
+# The base. Read first, so everything below overrides it. Try changing this
+# to gruvbox, dracula, solarized-dark, tokyonight, light or paper and saving.
+theme = nord
+
+
+# ---------------------------------------------------------------- palette
+# Everything refers to these by name, so changing one line here recolours
+# every part of the window manager that uses it. Uncomment to override the
+# preset above -- try accent first, it is the most visible.
+[palette]
+#accent  = #D08770
+#urgent  = #BF616A
+
+
+# ------------------------------------------------------------------- tone
+# Applied to every palette colour after the palette is resolved. This is the
+# quickest way to shift the whole scheme without editing colours: set
+# hue = 40 and save, and watch everything rotate together.
+[tone]
+hue        = 0      # degrees, -360..360
+saturation = 1.0    # multiplier
+lightness  = 1.0    # multiplier
+contrast   = 1.0    # push away from mid grey
+
+# Bar transparency. Only meaningful with useargb = 1 in config.h AND a
+# compositor running; without one an ARGB bar renders as garbage, which is
+# why it ships off.
+opacity    = 1.0
+
+
+# ---------------------------------------------------------------- metrics
+[metrics]
+border.width     = 2
+task.maxwidth    = 220    # widest a taskbar button gets
+task.minwidth    = 60     # below this, buttons share the space equally
+systray.iconsize = 16
+systray.spacing  = 2
+
+
+# ----------------------------------------------------------------- schemes
+# Each is: foreground, background, border. The names come from [palette]
+# above, but a literal like #ff8800 works too. Uncommented here so you can
+# see which part of the bar is which -- comment a line out and it falls back
+# to the preset.
+[scheme]
+norm     = fg,     bg,     border    # the bar itself
+sel      = bright, accent, accent    # selected tag, focused title
+tagnorm  = muted,  bg,     border
+tagsel   = bright, accent, accent
+tasknorm = fg,     bg,     border    # a taskbar button
+tasksel  = bright, accent, accent    # ... the focused window
+taskurg  = bright, urgent, urgent    # ... one demanding attention
+taskmin  = muted,  bg,     border    # ... one minimised to the corner
+status   = muted,  bg,     border    # the status text
+systray  = fg,     bg,     border    # behind the tray icons
+menu     = fg,     bg,     border    # tray applet menus
+menusel  = bright, accent, accent    # ... the highlighted row
+menudim  = muted,  bg,     border    # ... disabled rows and separators
+
+
+# ------------------------------------------------------------------- font
+# Changing the size resizes the bar and re-lays out every window, live.
+#[font]
+#main     = JetBrains Mono:size=10
+#fallback = Symbols Nerd Font:size=10

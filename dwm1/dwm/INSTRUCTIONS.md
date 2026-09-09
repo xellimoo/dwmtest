@@ -1,0 +1,124 @@
+# edwm user instructions
+
+## Themes
+
+Colors are switchable at runtime, no recompile and no restart. Themes are
+plain text files in `~/.config/edwm/themes/`, named `<name>.conf` (or
+`.theme`); the name you activate is the filename without its extension. The
+colors in config.h are the always-present built-in `default`.
+
+### Creating a theme file
+
+Name your colors once in `[palette]`, then map them onto scheme slots in
+`[scheme]`. Every scheme row is
+
+    fg[, bg[, border]]
+
+and each part is either a palette name or a literal color. Values accept
+anything XftColorAllocName understands: `#rrggbb`, `#rrggbbaa`, X color
+names (`red`, `slateblue`).
+
+    # ~/.config/edwm/themes/mytheme.conf
+    [palette]
+    bg      = #1a1b26
+    fg      = #c0caf5
+    bright  = #e8e8e8
+    accent  = #7aa2f7
+    border  = #3b4261
+    urgent  = #f7768e
+    muted   = #565f89
+
+    [scheme]
+    norm    = fg, bg, border      # bar background, plain window buttons, tags
+    sel     = bright, accent, accent   # focused window border and title bar text
+    tagsel  = bright, accent, accent   # selected tag (falls back to sel)
+    tasksel = bright, accent, accent   # focused window button (falls back to sel)
+    urg     = bg, urgent, urgent  # urgent windows and tags
+    hid     = muted, bg, border   # staylow (minimized) window buttons
+    status  = fg, bg, border      # status text (falls back to norm)
+
+    dmenu_nb = #1a1b26            # dmenu follows the theme (optional)
+    dmenu_nf = #c0caf5
+    dmenu_sb = #7aa2f7
+    dmenu_sf = #1a1b26
+
+Slot list: `norm`, `sel`, `tagsel`, `tasksel`, `urg`, `hid`, `status`.
+Everything is optional: rows you leave out keep the built-in defaults, and
+rows with fewer than three parts inherit the missing parts from the
+defaults. A minimal theme is two lines:
+
+    [palette]
+    accent = #bd93f9
+    fg     = #f8f8f2
+    [scheme]
+    sel = fg, accent, accent
+
+A flat layout also works (`norm_fg = #hex`, `sel_bg = ...`, one key per
+color, no sections).
+
+A theme containing a color that cannot be parsed is refused with a warning
+on stderr; the previous colors stay and the WM keeps running.
+
+### Activating
+
+    MODKEY-n          next theme
+    MODKEY-Shift-n    previous theme
+
+Theme files are scanned when dwm starts. A file created afterwards is not
+yet in the cycle - activate it once by name (this rescans the directory,
+afterwards MODKEY-n includes it), or restart dwm:
+
+    dbus-send --session --print-reply --dest=org.edwm /org/edwm \
+        org.edwm.Theme.SetTheme string:mytheme
+
+## D-Bus control
+
+dwm owns the `org.edwm` name on the session bus and serves
+`/org/edwm` with interface `org.edwm.Theme`. Run these from a terminal that
+dwm spawned (it carries DBUS_SESSION_BUS_ADDRESS).
+
+FreeBSD (dbus-send ships with dbus; busctl does not exist there):
+
+    dbus-send --session --print-reply --dest=org.edwm /org/edwm org.edwm.Theme.List
+    dbus-send --session --print-reply --dest=org.edwm /org/edwm org.edwm.Theme.Current
+    dbus-send --session --print-reply --dest=org.edwm /org/edwm org.edwm.Theme.Next
+    dbus-send --session --print-reply --dest=org.edwm /org/edwm org.edwm.Theme.Prev
+    dbus-send --session --print-reply --dest=org.edwm /org/edwm org.edwm.Theme.SetTheme string:nord
+
+Note the argument syntax `string:nord`: dbus-send needs the type prefix.
+
+Linux (busctl is shorter, or use gdbus from glib):
+
+    busctl --user call org.edwm /org/edwm org.edwm.Theme List
+    busctl --user call org.edwm /org/edwm org.edwm.Theme SetTheme s nord
+    gdbus call --session --dest org.edwm --object-path /org/edwm \
+        --method org.edwm.Theme.SetTheme 'nord'
+
+Every switch - keybinding or bus call - emits a signal with the new theme
+name; watch it with:
+
+    dbus-monitor --session "type='signal',interface='org.edwm.Theme'"
+
+## System tray
+
+The right end of the primary monitor's bar hosts an XEmbed system tray.
+Apps dock automatically; clicks on icons go to the app. Apps that start
+before the tray exists and map their icon as a plain window (the Wine /
+Battle.net "broken window" case) are recognized by their _XEMBED_INFO
+property and adopted into the tray.
+
+To test without a real tray app:
+
+    cc tools/docktest.c -o /tmp/docktest -lX11
+    /tmp/docktest 15            # normal dock request: white square, 15 s
+    /tmp/docktest 15 orphan     # maps as a plain toplevel instead of
+                                # docking - it should still end up in the
+                                # tray (the Battle.net startup case)
+
+## Session bus
+
+dwm makes sure a session bus exists (existing DBUS_SESSION_BUS_ADDRESS,
+then $XDG_RUNTIME_DIR/bus, then a dbus-daemon it spawns itself) and exports
+it to every child it spawns, so notifications and tray apps work without
+dbus-launch. If the bus dies dwm keeps running and reconnects when a bus is
+available again.

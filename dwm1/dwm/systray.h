@@ -25,6 +25,7 @@ int  systray_handle_configurerequest(XConfigureRequestEvent *ev);
 int  systray_handle_maprequest(Window w);
 int  systray_handle_destroynotify(Window w);
 int  systray_handle_reparentnotify(Window w, Window newparent);
+int  systray_adopt(Window w); /* dock an orphaned tray icon that mapped as a toplevel */
 
 void systray_cleanup(void);
 
