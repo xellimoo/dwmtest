@@ -89,6 +89,7 @@ Bar
 The middle of the bar shows one button per window on the current tags; the
 focused window is highlighted, urgent windows are inverted and staylow
 (minimized) windows are dimmed. Buttons that do not fit shrink and truncate.
+Newly opened windows are appended at the right end of the list (newest last).
 
     Button1 on a button    focus (on the focused button: staylow minimize)
     Button2 on a button    zoom

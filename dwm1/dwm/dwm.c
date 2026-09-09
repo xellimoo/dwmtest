@@ -3204,6 +3204,15 @@ tasklayout(Monitor *m, int x, int avail, TaskBtn *btns, int nmax)
 		total += btns[n].wnat;
 		n++;
 	}
+	/* m->clients is newest-first (attach() prepends): reverse so the list
+	 * reads oldest at the left and newly opened windows join at the right
+	 * end, like a classic taskbar. Only the bar is affected: tiling and
+	 * zoom keep using the list order. */
+	for (i = 0; n > 1 && i < n / 2; i++) {
+		TaskBtn tmp = btns[i];
+		btns[i] = btns[n - 1 - i];
+		btns[n - 1 - i] = tmp;
+	}
 	if (!n || avail <= 0)
 		return 0;
 	if (total > avail) { /* shrink proportionally, keeping an ellipsis floor */
