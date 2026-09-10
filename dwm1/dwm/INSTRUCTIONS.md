@@ -101,7 +101,9 @@ name; watch it with:
 
 ## System tray
 
-The right end of the primary monitor's bar hosts an XEmbed system tray.
+The primary monitor's bar hosts an XEmbed system tray, sitting immediately
+left of the status text (whatever you feed to xsetroot -name); the tray
+follows the status width as your status script updates it.
 Apps dock automatically; clicks on icons go to the app. Apps that start
 before the tray exists and map their icon as a plain window (the Wine /
 Battle.net "broken window" case) are recognized by their _XEMBED_INFO

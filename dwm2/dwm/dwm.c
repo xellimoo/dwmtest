@@ -1138,7 +1138,7 @@ drawtasks(Monitor *m, int x, int avail, int boxs, int boxw, unsigned int n)
 void
 drawbar(Monitor *m)
 {
-	int x, w, tw = 0, stw = 0, snw = 0, trayw = 0, trayx;
+	int x, w, tw = 0, stw = 0, snw = 0, trayw = 0, trayx, statusx;
 	int boxs = drw->fonts->h / 9;
 	int boxw = drw->fonts->h / 6 + 2;
 	unsigned int i, occ = 0, urg = 0, n = 0;
@@ -1150,22 +1150,30 @@ drawbar(Monitor *m)
 		return;
 
 	m->nsegs = 0;
+
+	/* The right end of the bar, laid out from the edge inwards:
+	 *
+	 *     [ ...taskbar... ][ SNI icons ][ XEmbed icons ][ status text ]
+	 *
+	 * Status sits hard against the screen edge and the tray sits to its left,
+	 * so a status line of system readings reads as one block at the end. */
+	tw = TEXTW(stext) - lrpad + 2; /* 2px right padding */
+	statusx = m->ww - tw;
+
 	if (m == systraymon()) {
 		stw = systray_width();
 		snw = sni_width(theme.systrayiconsize, theme.systrayspacing);
 		if (stw && snw)
 			snw += theme.systrayspacing; /* gap between the two kinds */
-		/* 2px inset so icons are not flush against the screen edge, matching
-		 * the padding the status text already uses */
-		trayw = (stw || snw) ? stw + snw + 2 : 0;
+		/* trailing gap so the last icon does not touch the status text */
+		trayw = (stw || snw) ? stw + snw + theme.systrayspacing + 2 : 0;
 	}
-	trayx = m->ww - trayw;
+	trayx = statusx - trayw;
 
-	/* status first, right-aligned, so the tags can overdraw it if they must */
+	/* status first, so the tags can overdraw it if they must */
 	drw_setscheme(drw, scheme[SchemeStatus]);
-	tw = TEXTW(stext) - lrpad + 2; /* 2px right padding */
-	drw_text(drw, trayx - tw, 0, tw, bh, 0, stext, 0);
-	barsegadd(m, trayx - tw, tw, SegStatus, 0, NULL);
+	drw_text(drw, statusx, 0, tw, bh, 0, stext, 0);
+	barsegadd(m, statusx, tw, SegStatus, 0, NULL);
 	if (trayw) {
 		/* paint under both trays so their icons composite against the theme */
 		drw_setscheme(drw, scheme[SchemeSystray]);
@@ -1222,7 +1230,7 @@ drawbar(Monitor *m)
 		x += w;
 	}
 
-	drawtasks(m, x, trayx - tw - x, boxs, boxw, n);
+	drawtasks(m, x, trayx - x, boxs, boxw, n);
 
 	/* SNI icons are painted, not embedded, so they go onto the pixmap before
 	 * it is copied to the bar. */

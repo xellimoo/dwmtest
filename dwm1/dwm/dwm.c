@@ -527,8 +527,7 @@ buttonpress(XEvent *e)
 			arg.ui = 1 << i;
 		} else if (ev->x < x + TEXTW(selmon->ltsymbol))
 			click = ClkLtSymbol;
-		else if (ev->x > selmon->ww - (selmon == mons ? systray_width() : 0)
-				- (int)(TEXTW(stext) - lrpad + 2))
+		else if (ev->x > selmon->ww - (int)(TEXTW(stext) - lrpad + 2))
 			click = ClkStatusText;
 		else {
 			/* window buttons drawn by the last drawbar(); the stored
@@ -806,7 +805,7 @@ configurenotify(XEvent *e)
 						resizeclient(c, m->mx, m->my, m->mw, m->mh);
 				XMoveResizeWindow(dpy, m->barwin, m->wx, m->by, m->ww, bh);
 			}
-			systray_layout(mons->ww); /* tray follows the resized primary bar */
+			systray_layout(mons->ww, TEXTW(stext) - lrpad + 2); /* tray follows the resized bar */
 			focus(NULL);
 			arrange(NULL);
 		}
@@ -957,7 +956,7 @@ drawbar(Monitor *m)
 	if (m == selmon || 1) { /* status is only drawn on selected monitor originally, now we draw it on all monitors */
 		drw_setscheme(drw, scheme[SchemeStatus]);
 		tw = TEXTW(stext) - lrpad + 2; /* 2px right padding */
-		drw_text(drw, m->ww - tw - trayres, 0, tw, bh, 0, stext, 0);
+		drw_text(drw, m->ww - tw, 0, tw, bh, 0, stext, 0); /* tray sits left of this */
 	}
 
 	for (c = m->clients; c; c = c->next) {
@@ -1033,9 +1032,9 @@ drawbar(Monitor *m)
 			m->ntbtns = nbtn;
 		} else
 			m->ntbtns = 0;
-		if (lastx < m->ww - tw - trayres) { /* wipe stale pixels after the last button */
+		if (lastx < m->ww - tw) { /* wipe stale pixels after the last button */
 			drw_setscheme(drw, scheme[SchemeNorm]);
-			drw_rect(drw, lastx, 0, m->ww - tw - trayres - lastx, bh, 1, 1);
+			drw_rect(drw, lastx, 0, m->ww - tw - lastx, bh, 1, 1);
 		}
 	}
 	drw_map(drw, m->barwin, 0, 0, m->ww, bh);
@@ -2342,8 +2341,7 @@ setup(void)
 	/* init bars */
 	updatebars();
 	systray_init(dpy, mons->barwin, bh, scheme[SchemeNorm][ColBg].pixel, screen);
-	updatestatus();
-	systray_layout(mons->ww); /* tray learns the real bar width */
+	updatestatus(); /* also positions the tray next to the status text */
 	/* supporting window for NetWMCheck */
 	wmcheckwin = XCreateSimpleWindow(dpy, root, 0, 0, 1, 1, 0, 0, 0);
 	XChangeProperty(dpy, wmcheckwin, netatom[NetWMCheck], XA_WINDOW, 32,
@@ -2804,6 +2802,7 @@ updatestatus(void)
 {
 	if (!gettextprop(root, XA_WM_NAME, stext, sizeof(stext)))
 		strcpy(stext, "dwm-"VERSION);
+	systray_layout(mons->ww, TEXTW(stext) - lrpad + 2); /* tray sits left of the status */
 	/* drawbar(selmon); */
     /* now we drawbars on all monitors */
     drawbars();

@@ -43,6 +43,8 @@ static Window traywin;              /* container, child of the primary bar */
 static int traybh, scr, barw;       /* bar height, screen number, bar width */
 static TrayIcon *icons;
 static int trayw;
+static int statw;                   /* status width from the last layout */
+static int trayx = -1, traycurw, lastn = -1; /* cache: skip no-op X calls */
 static Atom net_system_tray, net_system_tray_opcode, xembed, xembed_info, manager;
 
 static TrayIcon *
@@ -119,7 +121,7 @@ dock(Window w)
 	xembed_send(w, XEMBED_EMBEDDED_NOTIFY, 0, traywin, MIN(XEMBED_VERSION, version));
 	ic->next = icons;
 	icons = ic;
-	systray_layout(barw);
+	systray_layout(barw, statw);
 	return 1;
 }
 
@@ -162,7 +164,7 @@ removeicon(Window w, int reparented)
 	if (reparented) /* moved out of the tray: undo the save-set entry */
 		XRemoveFromSaveSet(dpy, w);
 	free(ic);
-	systray_layout(barw);
+	systray_layout(barw, statw);
 	return 1;
 }
 
@@ -211,31 +213,48 @@ systray_init(Display *display, Window parentbar, int barheight,
 }
 
 void
-systray_layout(int barwidth)
+systray_layout(int barwidth, int statuswidth)
 {
 	TrayIcon *ic;
-	int n = 0, x = 0;
+	int n = 0, ix = 0, x;
 
 	barw = barwidth;
+	statw = statuswidth;
 	for (ic = icons; ic; ic = ic->next)
 		if (ic->flags & XEMBED_MAPPED)
 			n++;
 	trayw = n * traybh;
 	if (!n) {
 		XUnmapWindow(dpy, traywin);
+		traycurw = 0; /* force a reposition when an icon returns */
+		lastn = 0;
 		return;
 	}
-	XMoveResizeWindow(dpy, traywin, barw - trayw, 0, trayw, traybh);
-	for (ic = icons; ic; ic = ic->next) {
-		if (!(ic->flags & XEMBED_MAPPED)) {
-			XUnmapWindow(dpy, ic->win);
-			continue;
-		}
-		XMoveResizeWindow(dpy, ic->win, x, 0, traybh, traybh);
-		XMapWindow(dpy, ic->win);
-		x += traybh;
+	/* directly left of the status text; never off-screen */
+	x = barw - statw - trayw;
+	if (x < 0)
+		x = 0;
+	/* the status script changes the text width all the time: move only
+	 * when something actually changed, so recurring layout calls from
+	 * updatestatus() cost nothing and never make icons redraw */
+	if (x != trayx || trayw != traycurw) {
+		XMoveResizeWindow(dpy, traywin, x, 0, trayw, traybh);
+		trayx = x;
+		traycurw = trayw;
 	}
-	XMapRaised(dpy, traywin);
+	if (n != lastn) {
+		for (ic = icons; ic; ic = ic->next) {
+			if (!(ic->flags & XEMBED_MAPPED)) {
+				XUnmapWindow(dpy, ic->win);
+				continue;
+			}
+			XMoveResizeWindow(dpy, ic->win, ix, 0, traybh, traybh);
+			XMapWindow(dpy, ic->win);
+			ix += traybh;
+		}
+		XMapRaised(dpy, traywin);
+		lastn = n;
+	}
 }
 
 void
@@ -288,7 +307,7 @@ systray_handle_propertynotify(XPropertyEvent *ev)
 		xembed_send(ic->win, XEMBED_FOCUS_OUT, 0, 0, 0);
 	}
 	ic->flags = flags;
-	systray_layout(barw);
+	systray_layout(barw, statw);
 	return 1;
 }
 
@@ -335,7 +354,7 @@ systray_handle_maprequest(Window w)
 	xembed_send(w, XEMBED_WINDOW_ACTIVATE, 0, 0, 0);
 	if (!(ic->flags & XEMBED_MAPPED)) {
 		ic->flags |= XEMBED_MAPPED;
-		systray_layout(barw);
+		systray_layout(barw, statw);
 	}
 	return 1;
 }

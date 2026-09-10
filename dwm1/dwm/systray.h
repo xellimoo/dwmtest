@@ -15,7 +15,9 @@
 
 void systray_init(Display *dpy, Window parentbar, int barheight,
                   unsigned long bgpixel, int scr);
-void systray_layout(int barwidth); /* reposition container + icons */
+/* reposition container + icons so they sit directly left of the status
+ * text (statuswidth = width the caller is about to draw, e.g. xsetroot) */
+void systray_layout(int barwidth, int statuswidth);
 void systray_theme(unsigned long bgpixel);
 int  systray_width(void);          /* bar space reserved on the primary monitor */
 
