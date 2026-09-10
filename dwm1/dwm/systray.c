@@ -21,6 +21,7 @@
 #define SYSTEM_TRAY_REQUEST_DOCK 0
 #define XEMBED_VERSION           0
 #define XEMBED_MAPPED            (1L << 0)
+#define TRAYGAP                  2 /* px of left margin kept for every icon */
 
 /* XEmbed message opcodes */
 #define XEMBED_EMBEDDED_NOTIFY   0
@@ -223,7 +224,7 @@ systray_layout(int barwidth, int statuswidth)
 	for (ic = icons; ic; ic = ic->next)
 		if (ic->flags & XEMBED_MAPPED)
 			n++;
-	trayw = n * traybh;
+	trayw = n * (traybh + TRAYGAP); /* every icon slot carries its margin */
 	if (!n) {
 		XUnmapWindow(dpy, traywin);
 		traycurw = 0; /* force a reposition when an icon returns */
@@ -248,9 +249,9 @@ systray_layout(int barwidth, int statuswidth)
 				XUnmapWindow(dpy, ic->win);
 				continue;
 			}
-			XMoveResizeWindow(dpy, ic->win, ix, 0, traybh, traybh);
+			XMoveResizeWindow(dpy, ic->win, ix + TRAYGAP, 0, traybh, traybh);
 			XMapWindow(dpy, ic->win);
-			ix += traybh;
+			ix += traybh + TRAYGAP;
 		}
 		XMapRaised(dpy, traywin);
 		lastn = n;

@@ -176,7 +176,9 @@ systray_width(void)
 
 	if (!running || !n)
 		return 0;
-	return n * iconsize + (n - 1) * spacing;
+	/* Every icon carries its own left margin, matching the drawn SNI icons so
+	 * the two kinds line up when they sit next to each other. */
+	return n * (iconsize + spacing);
 }
 
 static void
@@ -189,7 +191,7 @@ layouticons(void)
 			XUnmapWindow(dpy, icons[i].win);
 			continue;
 		}
-		XMoveResizeWindow(dpy, icons[i].win, x, 0, iconsize, iconsize);
+		XMoveResizeWindow(dpy, icons[i].win, x + spacing, 0, iconsize, iconsize);
 		XMapWindow(dpy, icons[i].win);
 		/* make the icon repaint against our background */
 		XClearArea(dpy, icons[i].win, 0, 0, 0, 0, True);

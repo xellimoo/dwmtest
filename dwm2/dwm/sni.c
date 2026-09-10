@@ -894,7 +894,9 @@ sni_width(int size, int spacing)
 {
 	int n = sni_count();
 
-	return n ? n * size + (n - 1) * spacing : 0;
+	/* Every icon carries its own left margin, so a run of them is evenly
+	 * spaced and the first is not flush against whatever sits to its left. */
+	return n ? n * (size + spacing) : 0;
 }
 
 int
@@ -904,7 +906,7 @@ sni_indexat(int x, int xstart, int size, int spacing)
 
 	for (i = 0; i < MAXITEMS; i++)
 		if (visible(&items[i])) {
-			int x0 = xstart + n * (size + spacing);
+			int x0 = xstart + n * (size + spacing) + spacing;
 			if (x >= x0 && x < x0 + size)
 				return i;
 			n++;
@@ -919,7 +921,7 @@ sni_draw(Drw *drw, int x, int y, int size, int spacing, unsigned long bg)
 
 	for (i = 0; i < MAXITEMS; i++)
 		if (visible(&items[i])) {
-			img_draw(drw, &items[i].icon, x, y, bg);
+			img_draw(drw, &items[i].icon, x + spacing, y, bg);
 			x += size + spacing;
 		}
 }

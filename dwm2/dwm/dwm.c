@@ -1163,10 +1163,10 @@ drawbar(Monitor *m)
 	if (m == systraymon()) {
 		stw = systray_width();
 		snw = sni_width(theme.systrayiconsize, theme.systrayspacing);
-		if (stw && snw)
-			snw += theme.systrayspacing; /* gap between the two kinds */
-		/* trailing gap so the last icon does not touch the status text */
-		trayw = (stw || snw) ? stw + snw + theme.systrayspacing + 2 : 0;
+		/* Each icon carries its own left margin, so the two kinds need no
+		 * extra gap between them; only a trailing one, so the last icon does
+		 * not touch the status text. */
+		trayw = (stw || snw) ? stw + snw + theme.systrayspacing : 0;
 	}
 	trayx = statusx - trayw;
 
