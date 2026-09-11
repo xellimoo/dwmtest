@@ -45,7 +45,9 @@ names (`red`, `slateblue`).
 Slot list: `norm`, `sel`, `tagsel`, `tasksel`, `urg`, `hid`, `status`.
 Everything is optional: rows you leave out keep the built-in defaults, and
 rows with fewer than three parts inherit the missing parts from the
-defaults. A minimal theme is two lines:
+defaults. Stock themes: default (built-in), dark, dracula, gruvbox, light,
+nord, paper, solarized-dark, terminal, tokyonight. A minimal theme is two
+lines:
 
     [palette]
     accent = #bd93f9
