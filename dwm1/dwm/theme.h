@@ -43,6 +43,9 @@ const char *theme_name(int i);       /* i in [0, theme_count()) */
 const char *theme_current(void);     /* name of the cursor theme */
 Theme *theme_advance(int dir);       /* move cursor, returns the new theme */
 Theme *theme_select(const char *name); /* set cursor by name, NULL when unknown */
+Theme *theme_cursor(void);           /* the cursor theme itself */
+char *theme_saved(void);             /* last-used theme name, caller frees */
+void theme_save(const char *name);   /* remember it for the next start */
 int theme_build(Drw *drw, Theme *t, Clr **scm); /* 0 ok, -1 bad colors (never dies) */
 void theme_schemefree(Drw *drw, Clr **scm);     /* XftColorFree + free rows + array */
 void theme_dmenu_apply(Theme *t);    /* rewrite the dmenu color argv buffers */

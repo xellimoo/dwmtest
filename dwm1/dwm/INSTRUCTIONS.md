@@ -66,6 +66,11 @@ on stderr; the previous colors stay and the WM keeps running.
     MODKEY-n          next theme
     MODKEY-Shift-n    previous theme
 
+The selected theme is remembered: every switch writes its name to
+~/.config/edwm/theme, and the next start of dwm comes up on that theme
+(unknown or broken entries fall back to the default). Delete that file to
+start on the default again.
+
 Theme files are scanned when dwm starts. A file created afterwards is not
 yet in the cycle - activate it once by name (this rescans the directory,
 afterwards MODKEY-n includes it), or restart dwm:

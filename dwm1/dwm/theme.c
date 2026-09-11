@@ -12,6 +12,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
 #include <unistd.h>
 
 #include "theme.h"
@@ -43,6 +44,7 @@ static int nthemes, cur;           /* cur always valid once theme_init() ran */
 static const char *(*builtin)[3]; /* config.h colors[][3], SchemeLast rows */
 static char dmenu_def[4][32];     /* copied: the caller's array may be temporary */
 static char userdir[512];         /* expanded at theme_init() for rescans */
+static char statefile[512];       /* remembers the active theme across restarts */
 
 char theme_dmenu_nb[32], theme_dmenu_nf[32], theme_dmenu_sb[32], theme_dmenu_sf[32];
 
@@ -296,10 +298,13 @@ theme_init(const char *dir, const char *b[][3], const char *ddef[4])
 		snprintf(dmenu_def[i], 32, "%.31s", ddef[i]);
 	cur = 0;
 	userdir[0] = '\0';
+	statefile[0] = '\0';
 	if (dir[0] == '~' && (home = getenv("HOME")) && *home)
 		snprintf(userdir, sizeof userdir, "%s%s", home, dir + 1);
 	else if (dir[0])
 		snprintf(userdir, sizeof userdir, "%s", dir);
+	if ((home = getenv("HOME")) && *home)
+		snprintf(statefile, sizeof statefile, "%s/.config/edwm/theme", home);
 	/* themes[0]: pure built-in default */
 	if (theme_add(xstrdup("default")) < 0)
 		return -1;
@@ -372,6 +377,51 @@ theme_select(const char *name)
 			return &themes[i];
 		}
 	return NULL;
+}
+
+Theme *
+theme_cursor(void)
+{
+	return nthemes ? &themes[cur] : NULL;
+}
+
+/* --- persistence: the theme active at exit is the one at next start ------- */
+
+char *
+theme_saved(void)
+{
+	FILE *f;
+	char name[128], *nl;
+
+	if (!statefile[0] || !(f = fopen(statefile, "r")))
+		return NULL;
+	if (!fgets(name, sizeof name, f)) {
+		fclose(f);
+		return NULL;
+	}
+	fclose(f);
+	if ((nl = strchr(name, '\n')))
+		*nl = '\0';
+	return *name ? xstrdup(name) : NULL;
+}
+
+/* best effort: one tiny write per explicit theme switch, nothing steady */
+void
+theme_save(const char *name)
+{
+	FILE *f;
+	char dir[512], *slash;
+
+	if (!statefile[0] || !name || !*name)
+		return;
+	snprintf(dir, sizeof dir, "%s", statefile);
+	if ((slash = strrchr(dir, '/')))
+		*slash = '\0';
+	mkdir(dir, 0755); /* usually exists (the themes live there); EEXIST fine */
+	if (!(f = fopen(statefile, "w")))
+		return;
+	fprintf(f, "%s\n", name);
+	fclose(f);
 }
 
 /* Fallbacks so themes can stay small: tagsel->sel, tasksel->sel,

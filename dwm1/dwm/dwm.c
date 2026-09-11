@@ -2290,6 +2290,7 @@ setup(void)
 	XSetWindowAttributes wa;
 	Atom utf8string;
 	struct sigaction sa;
+	char *saved;
 
 	/* do not transform children into zombies when they terminate */
 	sigemptyset(&sa.sa_mask);
@@ -2330,14 +2331,23 @@ setup(void)
 	cursor[CurNormal] = drw_cur_create(drw, XC_left_ptr);
 	cursor[CurResize] = drw_cur_create(drw, XC_sizing);
 	cursor[CurMove] = drw_cur_create(drw, XC_fleur);
-	/* init appearance: scan + parse themes, then build the built-in default
-	 * scheme (drw_scm_create would die() on bad colors; theme_build is the
-	 * non-fatal allocator used for every later runtime switch too) */
+	/* init appearance: scan + parse themes, then start on the theme that
+	 * was active at last exit (the built-in default when none was saved);
+	 * theme_build is the non-fatal allocator, a bad saved theme falls
+	 * back to the default instead of dying */
 	theme_init(themedir, colors,
 		(const char *[]){ col_gray1, col_gray3, col_cyan, col_gray4 });
+	if ((saved = theme_saved())) {
+		theme_select(saved); /* unknown name keeps the default */
+		free(saved);
+	}
 	scheme = ecalloc(SchemeLast, sizeof(Clr *));
-	if (theme_build(drw, NULL, scheme) < 0)
-		die("cannot allocate builtin colors");
+	if (theme_build(drw, theme_cursor(), scheme) < 0) {
+		theme_select("default");
+		if (theme_build(drw, theme_cursor(), scheme) < 0)
+			die("cannot allocate builtin colors");
+	}
+	theme_dmenu_apply(theme_cursor());
 	/* init bars */
 	updatebars();
 	systray_init(dpy, mons->barwin, bh, scheme[SchemeNorm][ColBg].pixel, screen);
@@ -3163,6 +3173,7 @@ theme_action(int dir, const char *name)
 	refreshborders();
 	systray_theme(scheme[SchemeNorm][ColBg].pixel);
 	theme_dmenu_apply(t);
+	theme_save(theme_current());
 	drawbars();
 	edwm_dbus_announce(theme_current());
 	return 0;
