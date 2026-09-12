@@ -29,6 +29,10 @@
 static DBusConnection *conn;
 static int busfd = -1;
 static long retryat;             /* monotonic ms when a reconnect is due; 0 = none */
+static int ownedpid = 0;         /* daemon we spawned ourselves, 0 = none */
+static char pidfile[512];        /* ~/.config/edwm/dbus.pid, for post-SIGKILL adoption */
+static void daemon_record(void);
+static int daemon_adopt(void);
 
 static long
 nowms(void)
@@ -104,13 +108,20 @@ env_from_own_daemon(int xfd)
 	snprintf(addr, sizeof addr, "%s", buf);
 	if (setenv("DBUS_SESSION_BUS_ADDRESS", addr, 1) != 0)
 		return -1;
-	/* second line is the pid (best effort) */
-	if ((eol = strchr(eol + 1, '\n')) && eol[1]) {
-		char *end = strchr(eol + 1, '\n');
+	/* second line is the pid: remember it so cleanup can take the daemon
+	 * down with us (it is ours; a bus we merely attached to is not).
+	 * eol is the '\0' that used to end the address line; the pid follows,
+	 * terminated by a newline or the end of the buffer */
+	{
+		char *p = eol + 1;
+		char *end = strchr(p, '\n');
 		if (end)
 			*end = '\0';
-		snprintf(pid, sizeof pid, "%s", eol + 1);
-		setenv("DBUS_SESSION_BUS_PID", pid, 1);
+		if (*p) {
+			snprintf(pid, sizeof pid, "%s", p);
+			setenv("DBUS_SESSION_BUS_PID", pid, 1);
+			ownedpid = atoi(pid);
+		}
 	}
 	return 0;
 }
@@ -173,13 +184,22 @@ void
 edwm_dbus_init(int xfd)
 {
 	const char *addr = getenv("DBUS_SESSION_BUS_ADDRESS");
+	const char *home = getenv("HOME");
 
+	if (home && *home)
+		snprintf(pidfile, sizeof pidfile, "%s/.config/edwm/dbus.pid", home);
+	else
+		pidfile[0] = '\0';
 	if (addr && *addr && bus_connect() == 0)
 		goto up;
 	if (env_from_runtime_dir() == 0 && bus_connect() == 0)
 		goto up;
-	if (env_from_own_daemon(xfd) == 0 && bus_connect() == 0)
+	if (daemon_adopt() == 0) /* daemon adopted from a SIGKILLed dwm */
 		goto up;
+	if (env_from_own_daemon(xfd) == 0 && bus_connect() == 0) {
+		daemon_record();
+		goto up;
+	}
 	retryat = nowms() + EDBUS_RETRY_MS;
 	return;
 up:
@@ -355,6 +375,100 @@ edwm_dbus_announce(const char *themename)
 		dbus_message_unref(msg);
 }
 
+/* is <pid> still a dbus-daemon? 1 yes, 0 no (recycled pid), -1 unknown
+ * (no procfs) - when unknown the dbus-launch convention applies: trust
+ * the recorded pid */
+static int
+pid_is_dbus_daemon(int pid)
+{
+	char path[64], name[32] = {0};
+	FILE *f;
+
+	snprintf(path, sizeof path, "/proc/%d/comm", pid);
+	if (!(f = fopen(path, "r")))
+		return -1;
+	if (fgets(name, sizeof name, f) && strstr(name, "dbus-daemon")) {
+		fclose(f);
+		return 1;
+	}
+	fclose(f);
+	return 0;
+}
+
+/* take down the daemon we spawned, if it is still ours: the pid may have
+ * been recycled after the daemon died, so verify its identity through
+ * /proc/<pid>/comm whenever procfs is available before killing */
+static void
+kill_owned_daemon(void)
+{
+	if (ownedpid <= 1)
+		return;
+	if (pid_is_dbus_daemon(ownedpid) != 0) /* verified, or unverifiable */
+		kill(ownedpid, SIGTERM);
+	ownedpid = 0;
+	if (pidfile[0])
+		unlink(pidfile);
+}
+
+/* remember our daemon's address and pid so a dwm started after a SIGKILL
+ * (which skipped cleanup) can adopt it instead of leaking it and spawning
+ * a second one */
+static void
+daemon_record(void)
+{
+	FILE *f;
+	char dir[512], *slash;
+
+	if (!pidfile[0] || ownedpid <= 1)
+		return;
+	snprintf(dir, sizeof dir, "%s", pidfile);
+	if ((slash = strrchr(dir, '/')))
+		*slash = '\0';
+	mkdir(dir, 0755); /* usually exists (themes live there); EEXIST fine */
+	if (!(f = fopen(pidfile, "w")))
+		return;
+	{
+		const char *a = getenv("DBUS_SESSION_BUS_ADDRESS");
+		fprintf(f, "%s\n%d\n", a ? a : "", ownedpid);
+	}
+	fclose(f);
+}
+
+/* adopt the daemon a previous dwm instance left behind (SIGKILL case):
+ * reconnect when the recorded pid is still a dbus-daemon and its socket
+ * answers; otherwise clean up the corpse and let the caller spawn fresh */
+static int
+daemon_adopt(void)
+{
+	FILE *f;
+	char addr[512], pidline[32];
+	int pid = 0;
+
+	if (!pidfile[0] || !(f = fopen(pidfile, "r")))
+		return -1;
+	if (!fgets(addr, sizeof addr, f)) {
+		fclose(f);
+		return -1;
+	}
+	addr[strcspn(addr, "\n")] = '\0';
+	if (fgets(pidline, sizeof pidline, f))
+		pid = atoi(pidline);
+	fclose(f);
+	if (!addr[0] || pid <= 1)
+		return -1;
+	if (pid_is_dbus_daemon(pid) == 0)
+		return -1; /* pid recycled: stale record, spawn fresh */
+	setenv("DBUS_SESSION_BUS_ADDRESS", addr, 1);
+	if (bus_connect() < 0) {
+		/* recorded daemon hung or half dead: take it down first */
+		if (pid_is_dbus_daemon(pid) != 0)
+			kill(pid, SIGTERM);
+		return -1;
+	}
+	ownedpid = pid; /* ours again: our cleanup will take it down */
+	return 0;
+}
+
 void
 edwm_dbus_cleanup(void)
 {
@@ -363,4 +477,5 @@ edwm_dbus_cleanup(void)
 	conn = NULL;
 	busfd = -1;
 	retryat = 0;
+	kill_owned_daemon();
 }

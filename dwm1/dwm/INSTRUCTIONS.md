@@ -129,5 +129,10 @@ To test without a real tray app:
 dwm makes sure a session bus exists (existing DBUS_SESSION_BUS_ADDRESS,
 then $XDG_RUNTIME_DIR/bus, then a dbus-daemon it spawns itself) and exports
 it to every child it spawns, so notifications and tray apps work without
-dbus-launch. If the bus dies dwm keeps running and reconnects when a bus is
-available again.
+dbus-launch. A daemon dwm spawned is tied to dwm's lifetime: it is killed
+on a clean exit, and its address and pid are recorded in
+~/.config/edwm/dbus.pid so that even after a SIGKILL the next dwm adopts
+it instead of leaking it and spawning a second one (the record is verified
+against /proc before adopting or killing). Buses dwm merely attached to
+(the systemd user bus, a dbus-launch session) are never killed. If the bus
+dies dwm keeps running and reconnects when a bus is available again.

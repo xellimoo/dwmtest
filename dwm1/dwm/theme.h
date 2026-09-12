@@ -48,6 +48,7 @@ char *theme_saved(void);             /* last-used theme name, caller frees */
 void theme_save(const char *name);   /* remember it for the next start */
 int theme_build(Drw *drw, Theme *t, Clr **scm); /* 0 ok, -1 bad colors (never dies) */
 void theme_schemefree(Drw *drw, Clr **scm);     /* XftColorFree + free rows + array */
+void theme_cleanup(void);            /* free all parsed themes (exit path) */
 void theme_dmenu_apply(Theme *t);    /* rewrite the dmenu color argv buffers */
 
 /* dmenu argv color slots, referenced by config.h's dmenucmd[]; rewritten in

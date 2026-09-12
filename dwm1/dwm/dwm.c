@@ -716,6 +716,7 @@ cleanup(void)
 	for (i = 0; i < CurLast; i++)
 		drw_cur_free(drw, cursor[i]);
 	theme_schemefree(drw, scheme);
+	theme_cleanup();
 	XDestroyWindow(dpy, wmcheckwin);
 	drw_free(drw);
 	XSync(dpy, False);

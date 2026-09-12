@@ -336,6 +336,20 @@ theme_rescan(void)
 	cur = idx;
 }
 
+/* free every parsed theme and the array itself (exit path) */
+void
+theme_cleanup(void)
+{
+	int i;
+
+	for (i = 0; i < nthemes; i++)
+		freetheme(&themes[i]);
+	free(themes);
+	themes = NULL;
+	nthemes = 0;
+	cur = 0;
+}
+
 int
 theme_count(void)
 {
