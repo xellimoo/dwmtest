@@ -130,12 +130,11 @@ name; watch it with:
 
 ## System tray
 
-The bar hosts an XEmbed system tray, sitting immediately left of the
-status text (whatever you feed to xsetroot -name); the tray follows the
-status width as your status script updates it. With multiple monitors the
-tray renders on the selected monitor's bar - XEmbed icons are single X
-windows and cannot be shown on two bars at once, so they follow whichever
-monitor you are working on.
+The primary monitor's bar hosts an XEmbed system tray, sitting
+immediately left of the status text (whatever you feed to xsetroot -name);
+the tray follows the status width as your status script updates it. With
+multiple monitors the tray renders on the primary monitor only: XEmbed
+icons are single X windows and cannot be shown on two bars at once.
 Apps dock automatically; clicks on icons go to the app. Apps that start
 before the tray exists and map their icon as a plain window (the Wine /
 Battle.net "broken window" case) are recognized by their _XEMBED_INFO

@@ -40,8 +40,7 @@ typedef struct TrayIcon {
 } TrayIcon;
 
 static Display *dpy;
-static Window traywin;              /* container, child of the selected bar */
-static Window curbar;               /* bar the tray is currently parented to */
+static Window traywin;              /* container, child of the primary bar */
 static int traybh, scr, barw;       /* bar height, screen number, bar width */
 static TrayIcon *icons;
 static int trayw;
@@ -187,7 +186,6 @@ systray_init(Display *display, Window parentbar, int barheight,
 	if (traywin) /* already initialized: re-init would orphan the icons */
 		return;
 	dpy = display;
-	curbar = parentbar;
 	traybh = barheight;
 	scr = screen;
 	barw = 1;
@@ -263,22 +261,6 @@ systray_layout(int barwidth, int statuswidth)
 		XMapRaised(dpy, traywin);
 		lastn = n;
 	}
-}
-
-/* the tray follows the selected monitor: the icons are real single
- * windows and can only be in one place, so they render on whichever bar
- * is active. Reparenting the container moves them all at once. */
-void
-systray_setbar(Window parentbar)
-{
-	if (!traywin || parentbar == None || parentbar == curbar)
-		return;
-	XReparentWindow(dpy, traywin, parentbar, 0, 0);
-	curbar = parentbar;
-	XMapRaised(dpy, traywin);
-	/* position within the new bar: the caller relayouts with its own
-	 * geometry right after (drawbar does), this is just a sane default */
-	systray_layout(barw, statw);
 }
 
 void

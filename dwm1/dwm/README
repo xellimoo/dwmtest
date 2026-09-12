@@ -95,10 +95,8 @@ Newly opened windows are appended at the right end of the list (newest last).
     Button2 on a button    zoom
     Button3 on a button    toggle that window's staylow state
 
-The bar hosts the system tray immediately left of the status text
-(xsetroot); the tray follows the status width as it changes and renders
-on the selected monitor's bar (XEmbed icons are single windows and can
-only be in one place at a time).
+The primary monitor's bar hosts the system tray, immediately left of the
+status text (xsetroot); the tray follows the status width as it changes.
 Tray apps dock their icons there automatically (XEmbed). Clicks on tray
 icons go to their apps.
 
