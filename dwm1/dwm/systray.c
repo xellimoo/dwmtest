@@ -89,7 +89,9 @@ read_xembed_info(Window w, unsigned long *version, unsigned long *flags)
 	*flags = XEMBED_MAPPED;
 	if (XGetWindowProperty(dpy, w, xembed_info, 0L, 2L, False, XA_CARDINAL,
 	                       &type, &format, &n, &left, &data) == Success && data) {
-		if (n >= 2) {
+		/* a malformed property must not feed us garbage: only trust a
+		 * 32-bit cardinal array with at least the two words we need */
+		if (n >= 2 && format == 32) {
 			unsigned long *v = (unsigned long *)data;
 			*version = v[0];
 			*flags = v[1] & XEMBED_MAPPED;
@@ -142,7 +144,8 @@ systray_adopt(Window w)
 	if (!w || iconfind(w))
 		return 0;
 	if (XGetWindowProperty(dpy, w, xembed_info, 0L, 2L, False, XA_CARDINAL,
-	                       &type, &format, &n, &left, &data) != Success || !data || n < 2) {
+	                       &type, &format, &n, &left, &data) != Success || !data
+	|| n < 2 || format != 32) {
 		if (data)
 			XFree(data);
 		return 0;
@@ -180,6 +183,8 @@ systray_init(Display *display, Window parentbar, int barheight,
 	char atomname[32];
 	XEvent e;
 
+	if (traywin) /* already initialized: re-init would orphan the icons */
+		return;
 	dpy = display;
 	traybh = barheight;
 	scr = screen;

@@ -211,8 +211,11 @@ up:
 static void
 reply_string(DBusConnection *c, DBusMessage *msg, const char *s)
 {
-	DBusMessage *reply = dbus_message_new_method_return(msg);
+	DBusMessage *reply;
 
+	if (!c || !msg || !s)
+		return;
+	reply = dbus_message_new_method_return(msg);
 	if (reply && dbus_message_append_args(reply, DBUS_TYPE_STRING, &s, DBUS_TYPE_INVALID))
 		dbus_connection_send(c, reply, NULL);
 	if (reply)
@@ -222,9 +225,12 @@ reply_string(DBusConnection *c, DBusMessage *msg, const char *s)
 static void
 reply_bool(DBusConnection *c, DBusMessage *msg, int b)
 {
-	DBusMessage *reply = dbus_message_new_method_return(msg);
+	DBusMessage *reply;
 	dbus_bool_t v = b;
 
+	if (!c || !msg)
+		return;
+	reply = dbus_message_new_method_return(msg);
 	if (reply && dbus_message_append_args(reply, DBUS_TYPE_BOOLEAN, &v, DBUS_TYPE_INVALID))
 		dbus_connection_send(c, reply, NULL);
 	if (reply)

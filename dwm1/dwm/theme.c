@@ -76,8 +76,11 @@ static struct { const char *key; int scheme, col; } slotkeys[] = {
 static char *
 xstrdup(const char *s)
 {
-	char *d = strdup(s);
+	char *d;
 
+	if (!s)
+		s = ""; /* callers never pass NULL today; stay safe anyway */
+	d = strdup(s);
 	if (!d)
 		die("edwm: out of memory");
 	return d;
@@ -295,7 +298,7 @@ theme_init(const char *dir, const char *b[][3], const char *ddef[4])
 
 	builtin = b;
 	for (i = 0; i < 4; i++)
-		snprintf(dmenu_def[i], 32, "%.31s", ddef[i]);
+		snprintf(dmenu_def[i], 32, "%.31s", ddef && ddef[i] ? ddef[i] : "");
 	cur = 0;
 	userdir[0] = '\0';
 	statefile[0] = '\0';
@@ -455,7 +458,9 @@ slotcolor(Theme *t, int scheme, int col)
 	scheme = fallback[scheme];
 	if (t && t->col[scheme][col])
 		return t->col[scheme][col];
-	return builtin[scheme][col] ? builtin[scheme][col] : "#000000";
+	if (!builtin || !builtin[scheme][col])
+		return "#000000"; /* pre-init or missing row: never crash the WM */
+	return builtin[scheme][col];
 }
 
 /* Build a full scheme into scm[0..SchemeLast) (caller-allocated array).
