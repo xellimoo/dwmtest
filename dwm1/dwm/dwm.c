@@ -806,7 +806,7 @@ configurenotify(XEvent *e)
 						resizeclient(c, m->mx, m->my, m->mw, m->mh);
 				XMoveResizeWindow(dpy, m->barwin, m->wx, m->by, m->ww, bh);
 			}
-			systray_layout(mons->ww, TEXTW(stext) - lrpad + 2); /* tray follows the resized bar */
+			systray_layout(selmon->ww, TEXTW(stext) - lrpad + 2); /* tray follows the resized bar */
 			focus(NULL);
 			arrange(NULL);
 		}
@@ -940,7 +940,7 @@ void
 drawbar(Monitor *m)
 {
 	int x, w, tw = 0;
-	int trayres = (m == mons) ? systray_width() : 0;
+	int trayres;
 	int boxs = drw->fonts->h / 9;
 	int boxw = drw->fonts->h / 6 + 2;
 	unsigned int i, occ = 0, urg = 0;
@@ -952,6 +952,13 @@ drawbar(Monitor *m)
 
 	if (!m->showbar)
 		return;
+	if (m == selmon) {
+		/* the tray follows the selected monitor: reparent the container
+		 * to this bar (no-op when already here) and position it */
+		systray_setbar(m->barwin);
+		systray_layout(m->ww, TEXTW(stext) - lrpad + 2);
+	}
+	trayres = (m == selmon) ? systray_width() : 0;
 
 	/* draw status first so it can be overdrawn by tags later */
 	if (m == selmon || 1) { /* status is only drawn on selected monitor originally, now we draw it on all monitors */
@@ -1596,8 +1603,13 @@ propertynotify(XEvent *e)
 			break;
 		}
 		if (ev->atom == XA_WM_NAME || ev->atom == netatom[NetWMName]) {
-			updatetitle(c);
-			drawbar(c->mon); /* any window button label may have changed */
+			/* static titles: the button keeps the window's first real
+			 * name and ignores later changes (terminals rewriting the
+			 * title per command, browser tabs, ...) */
+			if (!*c->name || !strcmp(c->name, broken)) {
+				updatetitle(c);
+				drawbar(c->mon);
+			}
 		}
 		if (ev->atom == netatom[NetWMWindowType])
 			updatewindowtype(c);
@@ -2813,7 +2825,7 @@ updatestatus(void)
 {
 	if (!gettextprop(root, XA_WM_NAME, stext, sizeof(stext)))
 		strcpy(stext, "dwm-"VERSION);
-	systray_layout(mons->ww, TEXTW(stext) - lrpad + 2); /* tray sits left of the status */
+	systray_layout(selmon->ww, TEXTW(stext) - lrpad + 2); /* tray sits left of the status */
 	/* drawbar(selmon); */
     /* now we drawbars on all monitors */
     drawbars();
