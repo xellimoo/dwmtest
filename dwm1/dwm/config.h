@@ -22,6 +22,7 @@ static const char *colors[][3]      = {
 	[SchemeNorm]     = { col_gray3, col_gray1, col_gray2 },
 	[SchemeSel]      = { col_gray4, col_cyan,  col_cyan  },
 	[SchemeTagSel]   = { col_gray4, col_cyan,  col_cyan  },
+	[SchemeTask]     = { col_gray3, col_gray2, col_gray2 },
 	[SchemeTaskSel]  = { col_gray4, col_cyan,  col_cyan  },
 	[SchemeUrg]      = { col_gray1, col_urgent, col_urgent },
 	[SchemeHid]      = { col_dim,   col_gray1, col_gray2 },

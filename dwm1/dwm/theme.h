@@ -25,8 +25,8 @@
 
 #include "drw.h"
 
-enum { SchemeNorm, SchemeSel, SchemeTagSel, SchemeTaskSel, SchemeUrg,
-       SchemeHid, SchemeStatus, SchemeLast }; /* color schemes */
+enum { SchemeNorm, SchemeSel, SchemeTagSel, SchemeTask, SchemeTaskSel,
+       SchemeUrg, SchemeHid, SchemeStatus, SchemeLast }; /* color schemes */
 
 typedef struct Theme Theme;
 

@@ -29,7 +29,8 @@ names (`red`, `slateblue`).
     muted   = #565f89
 
     [scheme]
-    norm    = fg, bg, border      # bar background, plain window buttons, tags
+    norm    = fg, bg, border      # bar background, tags, layout symbol
+    task    = fg, border, border  # inactive window buttons (falls back to norm)
     sel     = bright, accent, accent   # focused window border and title bar text
     tagsel  = bright, accent, accent   # selected tag (falls back to sel)
     tasksel = bright, accent, accent   # focused window button (falls back to sel)
@@ -42,7 +43,8 @@ names (`red`, `slateblue`).
     dmenu_sb = #7aa2f7
     dmenu_sf = #1a1b26
 
-Slot list: `norm`, `sel`, `tagsel`, `tasksel`, `urg`, `hid`, `status`.
+Slot list: `norm`, `task`, `sel`, `tagsel`, `tasksel`, `urg`, `hid`,
+`status`.
 Everything is optional: rows you leave out keep the built-in defaults, and
 rows with fewer than three parts inherit the missing parts from the
 defaults. Stock themes: default (built-in), dark, dracula, gruvbox, light,

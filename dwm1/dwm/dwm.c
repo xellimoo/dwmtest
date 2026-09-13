@@ -1021,7 +1021,7 @@ drawbar(Monitor *m)
 				else if (c->isstaylow)
 					drw_setscheme(drw, scheme[SchemeHid]);
 				else
-					drw_setscheme(drw, scheme[SchemeNorm]);
+					drw_setscheme(drw, scheme[SchemeTask]); /* inactive but visible */
 				drw_text(drw, m->tbtns[i].x, 0, m->tbtns[i].w, bh, lrpad / 2, c->name, 0);
 				lastx = m->tbtns[i].x + m->tbtns[i].w;
 				if (c == m->sel && m == selmon && c->isfloating) {

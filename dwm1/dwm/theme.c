@@ -52,6 +52,7 @@ static struct { const char *key; int scheme; } schemekeys[] = {
 	{ "norm",    SchemeNorm },
 	{ "sel",     SchemeSel },
 	{ "tagsel",  SchemeTagSel },
+	{ "task",    SchemeTask },
 	{ "tasksel", SchemeTaskSel },
 	{ "urg",     SchemeUrg },
 	{ "hid",     SchemeHid },
@@ -62,6 +63,9 @@ static struct { const char *key; int scheme, col; } slotkeys[] = {
 	{ "norm_fg",     SchemeNorm,    ColFg },
 	{ "norm_bg",     SchemeNorm,    ColBg },
 	{ "norm_border", SchemeNorm,    ColBorder },
+	{ "task_fg",     SchemeTask,    ColFg },
+	{ "task_bg",     SchemeTask,    ColBg },
+	{ "task_border", SchemeTask,    ColBorder },
 	{ "sel_fg",      SchemeSel,     ColFg },
 	{ "sel_bg",      SchemeSel,     ColBg },
 	{ "sel_border",  SchemeSel,     ColBorder },
@@ -448,19 +452,25 @@ slotcolor(Theme *t, int scheme, int col)
 {
 	static const int fallback[SchemeLast] = {
 		[SchemeNorm] = SchemeNorm, [SchemeSel] = SchemeSel,
-		[SchemeTagSel] = SchemeSel, [SchemeTaskSel] = SchemeSel,
+		[SchemeTagSel] = SchemeSel, [SchemeTask] = SchemeNorm,
+		[SchemeTaskSel] = SchemeSel,
 		[SchemeUrg] = SchemeUrg, [SchemeHid] = SchemeHid,
 		[SchemeStatus] = SchemeNorm,
 	};
+	int fb = fallback[scheme];
 
+	/* resolution order: the theme's own slot, the theme's fallback slot
+	 * (tagsel->sel, task->norm, ...), then the built-in row of the scheme
+	 * itself, then the fallback scheme's built-in */
 	if (t && t->col[scheme][col])
 		return t->col[scheme][col];
-	scheme = fallback[scheme];
-	if (t && t->col[scheme][col])
-		return t->col[scheme][col];
-	if (!builtin || !builtin[scheme][col])
-		return "#000000"; /* pre-init or missing row: never crash the WM */
-	return builtin[scheme][col];
+	if (t && t->col[fb][col])
+		return t->col[fb][col];
+	if (!builtin)
+		return "#000000"; /* pre-init: never crash the WM */
+	if (builtin[scheme][col])
+		return builtin[scheme][col];
+	return builtin[fb][col] ? builtin[fb][col] : "#000000";
 }
 
 /* Build a full scheme into scm[0..SchemeLast) (caller-allocated array).
